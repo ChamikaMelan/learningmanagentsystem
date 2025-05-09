@@ -23,6 +23,11 @@ const Sidebar = () => {
             <SquareLibrary size={22} />
             <h1>Payment</h1>
           </Link>
+
+          <Link to="AdminFeedback" className="flex items-center gap-2">
+            <SquareLibrary size={22} />
+            <h1>Feedbacak</h1>
+          </Link>
           
         </div>
       </div>
