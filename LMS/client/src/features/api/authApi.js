@@ -110,8 +110,40 @@ export const authApi = createApi({
           }
         }
       }),
-    }),
+    
+// Add these to your existing endpoints in authApi.js
+forgotPassword: builder.mutation({
+    query: (email) => ({
+      url: "forgot-password",
+      method: "POST",
+      body: { email }
+    })
+  }),
+  verifyOTP: builder.mutation({
+    query: ({ email, otp }) => ({
+      url: "verify-otp",
+      method: "POST",
+      body: { email, otp }
+    })
+  }),
+  resetPassword: builder.mutation({
+    query: ({ email, otp, newPassword }) => ({
+      url: "reset-password",
+      method: "POST",
+      body: { email, otp, newPassword }
+    })
+  }),/////
+//change password
+changePassword: builder.mutation({
+    query: (data) => ({
+        url: "change-password",
+        method: "PUT",
+        body: data,
+        credentials: "include"
+    })
+}),
 
+})
 });
 export const {
     useRegisterUserMutation,
@@ -122,4 +154,10 @@ export const {
     useDeleteUserMutation,
     useGetAllUsersQuery,
     
+    useForgotPasswordMutation,
+    useVerifyOTPMutation,
+    useResetPasswordMutation,
+    
+    useChangePasswordMutation,
+
 } = authApi;
