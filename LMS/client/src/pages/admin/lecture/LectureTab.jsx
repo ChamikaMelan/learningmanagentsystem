@@ -17,15 +17,16 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 
-const MEDIA_API = "http://localhost:8080/api/v1/media";
+const MEDIA_API = "http://localhost:8000/api/v1/media";
 
 const LectureTab = () => {
   const [lectureTitle, setLectureTitle] = useState("");
-  const [uploadVideInfo, setUploadVideoInfo] = useState(null);
+  const [uploadVideoInfo, setUploadVideoInfo] = useState(null);
+  const [uploadPdfInfo, setUploadPdfInfo] = useState(null);
   const [isFree, setIsFree] = useState(false);
   const [mediaProgress, setMediaProgress] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [btnDisable, setBtnDisable] = useState(true);
+  const [currentUploadType, setCurrentUploadType] = useState(null);
   const params = useParams();
   const { courseId, lectureId } = params;
 
@@ -36,52 +37,67 @@ const LectureTab = () => {
     if(lecture){
       setLectureTitle(lecture.lectureTitle);
       setIsFree(lecture.isPreviewFree);
-      setUploadVideoInfo(lecture.videoInfo)
+      setUploadVideoInfo({
+        videoUrl: lecture.videoUrl,
+        publicId: lecture.publicId
+      });
+      setUploadPdfInfo({
+        pdfUrl: lecture.pdfUrl,
+        pdfPublicId: lecture.pdfPublicId
+      });
     }
-  },[lecture])
+  },[lecture]);
 
-  const [edtiLecture, { data, isLoading, error, isSuccess }] =
-    useEditLectureMutation();
-    const [removeLecture,{data:removeData, isLoading:removeLoading, isSuccess:removeSuccess}] = useRemoveLectureMutation();
+  const [editLecture, { data, isLoading, error, isSuccess }] = useEditLectureMutation();
+  const [removeLecture, {data:removeData, isLoading:removeLoading, isSuccess:removeSuccess}] = useRemoveLectureMutation();
 
-  const fileChangeHandler = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append("file", file);
-      setMediaProgress(true);
-      try {
-        const res = await axios.post(`${MEDIA_API}/upload-video`, formData, {
-          onUploadProgress: ({ loaded, total }) => {
-            setUploadProgress(Math.round((loaded * 100) / total));
-          },
-        });
+  const handleFileUpload = async (file, type) => {
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    setCurrentUploadType(type);
+    setMediaProgress(true);
+    
+    try {
+      const endpoint = type === 'video' ? 'upload-video' : 'upload-pdf';
+      const res = await axios.post(`${MEDIA_API}/${endpoint}`, formData, {
+        onUploadProgress: ({ loaded, total }) => {
+          setUploadProgress(Math.round((loaded * 100) / total));
+        },
+      });
 
-        if (res.data.success) {
-          console.log(res);
+      if (res.data.success) {
+        if (type === 'video') {
           setUploadVideoInfo({
             videoUrl: res.data.data.url,
             publicId: res.data.data.public_id,
           });
-          setBtnDisable(false);
-          toast.success(res.data.message);
+        } else {
+          setUploadPdfInfo({
+            pdfUrl: res.data.data.url,
+            pdfPublicId: res.data.data.public_id,
+          });
         }
-      } catch (error) {
-        console.log(error);
-        toast.error("video upload failed");
-      } finally {
-        setMediaProgress(false);
+        toast.success(res.data.message);
       }
+    } catch (error) {
+      console.error(error);
+      toast.error(`${type} upload failed`);
+    } finally {
+      setMediaProgress(false);
+      setCurrentUploadType(null);
     }
   };
 
   const editLectureHandler = async () => {
-    console.log({ lectureTitle, uploadVideInfo, isFree, courseId, lectureId });
-
-    await edtiLecture({
+    await editLecture({
       lectureTitle,
-      videoInfo:uploadVideInfo,
-      isPreviewFree:isFree,
+      videoUrl: uploadVideoInfo?.videoUrl,
+      publicId: uploadVideoInfo?.publicId,
+      pdfUrl: uploadPdfInfo?.pdfUrl,
+      pdfPublicId: uploadPdfInfo?.pdfPublicId,
+      isPreviewFree: isFree,
       courseId,
       lectureId,
     });
@@ -104,7 +120,7 @@ const LectureTab = () => {
     if(removeSuccess){
       toast.success(removeData.message);
     }
-  },[removeSuccess])
+  },[removeSuccess]);
 
   return (
     <Card>
@@ -116,13 +132,13 @@ const LectureTab = () => {
           </CardDescription>
         </div>
         <div className="flex items-center gap-2">
-          <Button disbaled={removeLoading} variant="destructive" onClick={removeLectureHandler}>
-            {
-              removeLoading ? <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-              Please wait
-              </> : "Remove Lecture"
-            }
+          <Button disabled={removeLoading} variant="destructive" onClick={removeLectureHandler}>
+            {removeLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                Please wait
+              </>
+            ) : "Remove Lecture"}
           </Button>
         </div>
       </CardHeader>
@@ -136,6 +152,7 @@ const LectureTab = () => {
             placeholder="Ex. Introduction to Javascript"
           />
         </div>
+
         <div className="my-5">
           <Label>
             Video <span className="text-red-500">*</span>
@@ -143,32 +160,53 @@ const LectureTab = () => {
           <Input
             type="file"
             accept="video/*"
-            onChange={fileChangeHandler}
-            placeholder="Ex. Introduction to Javascript"
+            onChange={(e) => handleFileUpload(e.target.files[0], 'video')}
             className="w-fit"
           />
+          {uploadVideoInfo?.videoUrl && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Current video: {uploadVideoInfo.videoUrl.split('/').pop()}
+            </p>
+          )}
         </div>
+
+        <div className="my-5">
+          <Label>PDF Material</Label>
+          <Input
+            type="file"
+            accept="application/pdf"
+            onChange={(e) => handleFileUpload(e.target.files[0], 'pdf')}
+            className="w-fit"
+          />
+          {uploadPdfInfo?.pdfUrl && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Current PDF: {uploadPdfInfo.pdfUrl.split('/').pop()}
+            </p>
+          )}
+        </div>
+
         <div className="flex items-center space-x-2 my-5">
-          <Switch checked={isFree} onCheckedChange={setIsFree} id="airplane-mode" />
-          <Label htmlFor="airplane-mode">Is this video FREE</Label>
+          <Switch checked={isFree} onCheckedChange={setIsFree} id="free-lecture" />
+          <Label htmlFor="free-lecture">Is this video FREE</Label>
         </div>
 
         {mediaProgress && (
           <div className="my-4">
             <Progress value={uploadProgress} />
-            <p>{uploadProgress}% uploaded</p>
+            <p>
+              Uploading {currentUploadType}: {uploadProgress}%
+            </p>
           </div>
         )}
 
         <div className="mt-4">
           <Button disabled={isLoading} onClick={editLectureHandler}>
-              {
-                isLoading ? <>
+            {isLoading ? (
+              <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                 Please wait
-                </> : "Update Lecture"
-              }
-            
+              </>
+            ) : "Update Lecture"}
           </Button>
         </div>
       </CardContent>
