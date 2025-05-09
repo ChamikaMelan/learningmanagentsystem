@@ -18,6 +18,22 @@ export const uploadMedia = async (file) => {
     console.log(error);
   } 
 };
+
+export const uploadPDFToCloudinary = async (filePath) => {
+  try {
+    const result = await cloudinary.uploader.upload(filePath, {
+      resource_type: "auto",  // Important for PDFs
+      folder: "course_pdfs",  // Optional: organize in folder
+      allowed_formats: ["pdf"],  // Restrict to PDF only
+      format: "pdf",  // Ensure PDF format
+      // max_bytes: 10 * 1024 * 1024 // Optional: 10MB limit
+    });
+    return result;
+  } catch (error) {
+    console.error("PDF upload error:", error);
+    throw error;
+  }
+};
 export const deleteMediaFromCloudinary = async (publicId) => {
   try {
     await cloudinary.uploader.destroy(publicId);
@@ -35,3 +51,14 @@ export const deleteVideoFromCloudinary = async (publicId) => {
     }
 }
 
+
+export const deletePDFFromCloudinary = async (publicId) => {
+  try {
+    await cloudinary.uploader.destroy(publicId, {
+      resource_type: "raw"  // Required for PDF deletion
+    });
+  } catch (error) {
+    console.error("PDF delete error:", error);
+    throw error;
+  }
+};

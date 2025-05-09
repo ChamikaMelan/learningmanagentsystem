@@ -43,22 +43,14 @@ const ChatMessage = ({ message }) => {
   );
 };
 
-
 const CourseProgress = () => {
   const params = useParams();
   const courseId = params.courseId;
-  const { data, isLoading, isError, refetch } =
-    useGetCourseProgressQuery(courseId);
+  const { data, isLoading, isError, refetch } = useGetCourseProgressQuery(courseId);
 
   const [updateLectureProgress] = useUpdateLectureProgressMutation();
-  const [
-    completeCourse,
-    { data: markCompleteData, isSuccess: completedSuccess },
-  ] = useCompleteCourseMutation();
-  const [
-    inCompleteCourse,
-    { data: markInCompleteData, isSuccess: inCompletedSuccess },
-  ] = useInCompleteCourseMutation();
+  const [completeCourse, { data: markCompleteData, isSuccess: completedSuccess }] = useCompleteCourseMutation();
+  const [inCompleteCourse, { data: markInCompleteData, isSuccess: inCompletedSuccess }] = useInCompleteCourseMutation();
 
   // Chat state and hooks
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -76,8 +68,6 @@ const CourseProgress = () => {
   }, [chatHistoryData]);
 
   useEffect(() => {
-    console.log(markCompleteData);
-
     if (completedSuccess) {
       refetch();
       toast.success(markCompleteData.message);
@@ -96,9 +86,7 @@ const CourseProgress = () => {
   const { courseDetails, progress, completed } = data.data;
   const { courseTitle } = courseDetails;
 
-  // initialize the first lecture if not exist
-  const initialLecture =
-    currentLecture || (courseDetails.lectures && courseDetails.lectures[0]);
+  const initialLecture = currentLecture || (courseDetails.lectures && courseDetails.lectures[0]);
 
   const isLectureCompleted = (lectureId) => {
     return progress.some((prog) => prog.lectureId === lectureId && prog.viewed);
@@ -109,7 +97,6 @@ const CourseProgress = () => {
     refetch();
   };
 
-  // Handle select a specific lecture to watch
   const handleSelectLecture = (lecture) => {
     setCurrentLecture(lecture);
     handleLectureProgress(lecture._id);
@@ -122,10 +109,6 @@ const CourseProgress = () => {
   const handleInCompleteCourse = async () => {
     await inCompleteCourse(courseId);
   };
-
-  
-
-
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -155,11 +138,6 @@ const CourseProgress = () => {
     }
   };
 
-
-
-
-  
-
   const handleClearChat = async () => {
     try {
       await clearChatHistory(courseId);
@@ -171,10 +149,11 @@ const CourseProgress = () => {
   };
 
   const chatMessages = chatHistoryData?.data || [];
+  const selectedLecture = currentLecture || initialLecture;
 
   return (
     <div className="max-w-7xl mx-auto p-4">
-      {/* Display course name  */}
+      {/* Course Title and Complete Button */}
       <div className="flex justify-between mb-4">
         <h1 className="text-2xl font-bold">{courseTitle}</h1>
         <Button
@@ -183,7 +162,7 @@ const CourseProgress = () => {
         >
           {completed ? (
             <div className="flex items-center">
-              <CheckCircle className="h-4 w-4 mr-2" /> <span>Completed</span>{" "}
+              <CheckCircle className="h-4 w-4 mr-2" /> <span>Completed</span>
             </div>
           ) : (
             "Mark as completed"
@@ -191,46 +170,51 @@ const CourseProgress = () => {
         </Button>
       </div>
 
+      {/* Main Layout */}
       <div className="flex flex-col md:flex-row gap-6 relative">
-        {/* Video section  */}
+        {/* Video and PDF Section */}
         <div className="flex-1 md:w-3/5 h-fit rounded-lg shadow-lg p-4">
           <div>
             <video
-              src={currentLecture?.videoUrl || initialLecture.videoUrl}
+              src={selectedLecture?.videoUrl}
               controls
               className="w-full h-auto md:rounded-lg"
-              onPlay={() =>
-                handleLectureProgress(currentLecture?._id || initialLecture._id)
-              }
+              onPlay={() => handleLectureProgress(selectedLecture._id)}
             />
           </div>
-          {/* Display current watching lecture title */}
-          <div className="mt-2 ">
+
+          {/* Lecture Title */}
+          <div className="mt-2">
             <h3 className="font-medium text-lg">
               {`Lecture ${
-                courseDetails.lectures.findIndex(
-                  (lec) =>
-                    lec._id === (currentLecture?._id || initialLecture._id)
-                ) + 1
-              } : ${
-                currentLecture?.lectureTitle || initialLecture.lectureTitle
-              }`}
+                courseDetails.lectures.findIndex((lec) => lec._id === selectedLecture._id) + 1
+              } : ${selectedLecture.lectureTitle}`}
             </h3>
           </div>
+
+          {/* Display PDF if available */}
+          {selectedLecture?.pdfUrl && (
+            <div className="mt-4">
+              <h4 className="font-medium text-md mb-2">Lecture PDF</h4>
+              <iframe
+                src={selectedLecture.pdfUrl}
+                className="w-full h-96 border rounded-lg"
+                title="Lecture PDF"
+              ></iframe>
+            </div>
+          )}
         </div>
 
-        {/* Lecture Sidebar  */}
+        {/* Lecture List */}
         <div className="flex flex-col w-full md:w-2/5 border-t md:border-t-0 md:border-l border-gray-200 md:pl-4 pt-4 md:pt-0">
-          <h2 className="font-semibold text-xl mb-4">Course Lecture</h2>
+          <h2 className="font-semibold text-xl mb-4">Course Lectures</h2>
           <div className="flex-1 overflow-y-auto">
             {courseDetails?.lectures.map((lecture) => (
               <Card
                 key={lecture._id}
                 className={`mb-3 hover:cursor-pointer transition transform ${
-                  lecture._id === (currentLecture?._id || initialLecture._id)
-                    ? "bg-gray-200 dark:bg-gray-800"
-                    : ""
-                } `}
+                  lecture._id === selectedLecture._id ? "bg-gray-200 dark:bg-gray-800" : ""
+                }`}
                 onClick={() => handleSelectLecture(lecture)}
               >
                 <CardContent className="flex items-center justify-between p-4">
@@ -241,16 +225,11 @@ const CourseProgress = () => {
                       <CirclePlay size={24} className="text-gray-500 mr-2" />
                     )}
                     <div>
-                      <CardTitle className="text-lg font-medium">
-                        {lecture.lectureTitle}
-                      </CardTitle>
+                      <CardTitle className="text-lg font-medium">{lecture.lectureTitle}</CardTitle>
                     </div>
                   </div>
                   {isLectureCompleted(lecture._id) && (
-                    <Badge
-                      variant={"outline"}
-                      className="bg-green-200 text-green-600"
-                    >
+                    <Badge variant={"outline"} className="bg-green-200 text-green-600">
                       Completed
                     </Badge>
                   )}
