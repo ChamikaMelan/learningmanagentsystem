@@ -10,6 +10,8 @@ import purchaseRoute from "./routes/purchaseCourse.route.js";
 import courseProgressRoute from "./routes/courseProgress.route.js";
 import cartRoutes from './routes/cart.routes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import postRoutes from './routes/posts.js';
+
 dotenv.config({});
 
 // call database connection here
@@ -35,6 +37,7 @@ app.use("/api/v1/purchase", purchaseRoute);
 app.use("/api/v1/progress", courseProgressRoute);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/chat', chatRoutes);
+app.use('/api/v1/posts', postRoutes);
 
  
  

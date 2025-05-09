@@ -31,6 +31,15 @@ import {
 import PurchaseCourseProtectedRoute from "./components/PurchaseCourseProtectedRoute";
 import { ThemeProvider } from "./components/ThemeProvider";
 
+import FeedbackHome from "./pages/student/FeedbackHome";
+import CreatePost from "./pages/student/CreatePost";
+import EditPost from "./pages/student/EditPost";
+import FeedbackAdminHome from "./pages/admin/feedback/FeedbackAdminHome";
+import Reply from "./pages/admin/feedback/Reply";
+import PostDetails from "./pages/admin/feedback/PostDetails";
+
+
+
 const appRouter = createBrowserRouter([
   {
     path: "/",
@@ -112,6 +121,35 @@ const appRouter = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+
+      {
+        path: "feedback",
+        element: (
+          <ProtectedRoute>
+            <FeedbackHome />
+          </ProtectedRoute>
+        ),
+      },
+      
+      {
+        path: "feedback/add",
+        element: (
+          <ProtectedRoute>
+            <CreatePost />
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path: "feedback/edit/:id",
+        element: (
+          <ProtectedRoute>
+            <EditPost />
+          </ProtectedRoute>
+        ),
+      },
+
+
       // admin routes start from here
       {
         path: "admin",
@@ -155,6 +193,28 @@ const appRouter = createBrowserRouter([
             path: "course/:courseId/lecture/:lectureId",
             element: <EditLecture />,
           },
+
+
+          {
+            path: "AdminFeedback",
+            element: <FeedbackAdminHome />,
+          },
+
+          {
+            path: "FeedbackReply/:id",
+            element: <Reply />,
+          },
+
+          {
+            path: "feedback/post/:id",
+            element: (
+              <ProtectedRoute>
+                <PostDetails />
+              </ProtectedRoute>
+            ),
+          },
+
+          
         ],
       },
     ],

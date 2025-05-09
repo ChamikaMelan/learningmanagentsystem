@@ -1,0 +1,71 @@
+.edit-post-container {
+    max-width: 500px;
+    margin: 50px auto;
+    background: #fff;
+    border-radius: 12px;
+    padding: 40px 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  .edit-post-container h2 {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 30px;
+    color: #1a1a1a;
+  }
+  
+  .edit-post-container input,
+  .edit-post-container textarea {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f9fafb;
+    font-size: 14px;
+    margin-bottom: 18px;
+    transition: border 0.3s;
+  }
+  
+  .edit-post-container input:focus,
+  .edit-post-container textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+    background: #fff;
+  }
+  
+  .edit-post-container textarea {
+    resize: none;
+    height: 120px;
+  }
+  
+  .edit-post-container button {
+    width: 100%;
+    padding: 14px;
+    background: #0f172a;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .edit-post-container button:hover {
+    background: #1e293b;
+  }
+  
+  .rating-label {
+    text-align: center;
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #1e1e1e;
+  }
+  
+  .rating-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+  }
+  
