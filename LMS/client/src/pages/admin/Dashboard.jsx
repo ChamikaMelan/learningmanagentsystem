@@ -1,4 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect,useMemo } from 'react';
+import React, { useRef } from 'react';
+
+import { format } from 'date-fns';//date
+import html2canvas from 'html2canvas';//image download 
 import {
   Card,
   CardContent,
@@ -12,6 +16,8 @@ import {
 } from "@/features/api/purchaseApi";
 import { useGetAllUsersQuery } from "@/features/api/authApi";
 import {
+  Bar,
+  BarChart,
   LineChart,
   Line,
   XAxis,
@@ -24,6 +30,8 @@ import AllUsers from './user/AllUsers';
 
 const Dashboard = () => {
   // Fetch all data
+     const chartRef = useRef(null);
+     
   const {
     data: purchasesData,
     isLoading: purchasesLoading,
@@ -66,7 +74,30 @@ const Dashboard = () => {
     name: course.courseId?.courseTitle?.substring(0, 15) + '...' || 'Course',
     price: course.courseId?.coursePrice || 0,
   }));
+// Chart data formatting for user login dates
+// Step 1: Create a map of login counts per day
+const loginCounts = {};
 
+usersData?.users?.forEach(user => {
+  if (user.lastLogin) {
+    const dateObj = new Date(user.lastLogin);
+    const dateKey = dateObj.toISOString().slice(0, 10); // "2025-04-28"
+    loginCounts[dateKey] = (loginCounts[dateKey] || 0) + 1;
+  }
+});
+
+// Format and sort
+const loginChartData = Object.entries(loginCounts)
+  .map(([dateKey, count]) => ({
+    dateKey,
+    dateLabel: format(new Date(dateKey), 'dd MMM'), // e.g., "28 Apr"
+    count,
+  }))
+  .sort((a, b) => new Date(a.dateKey) - new Date(b.dateKey));;
+
+///download picture
+
+//
   if (isLoading) return <div className="p-4 text-center">Loading Dashboard...</div>;
   if (isError) return <div className="p-4 text-red-500">Error loading dashboard data</div>;
 
@@ -129,7 +160,48 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-        
+ {/* Users Login Chart */}
+{/* Users Login Chart with Download Button */}
+<Card className="w-full">
+  <CardHeader className="flex justify-between items-center">
+    <CardTitle className="text-lg">Users Login Chart</CardTitle>
+    <button
+      onClick={async () => {
+        if (!chartRef.current) return;
+        const canvas = await html2canvas(chartRef.current);
+        const link = document.createElement('a');
+        link.download = 'login-chart.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      }}
+      className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+    >
+      Download Chart
+    </button>
+  </CardHeader>
+  <CardContent ref={chartRef}>
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={loginChartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis
+          dataKey="dateLabel"
+          angle={0}
+          textAnchor="end"
+          tick={{ fontSize: 12 }}
+          interval={0}
+          label={{ value: 'Login Date', position: 'insideBottom', offset: -1 }}
+        />
+        <YAxis
+          allowDecimals={false}
+          label={{ value: 'Count', angle: -90, position: '' }}
+        />
+        <Tooltip />
+        <Bar type="monotone" dataKey="count" stroke="#2f4d8f"  fill="#2f4d8f" />
+      </BarChart>
+    </ResponsiveContainer>
+  </CardContent>
+</Card>
+
       </div>
 
 

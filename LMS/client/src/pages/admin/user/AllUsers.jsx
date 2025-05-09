@@ -13,6 +13,7 @@ import { Loader2, Trash } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import Swal from "sweetalert2";
 
 const AllUsers = () => {
   const { data, isLoading, isError } = useGetAllUsersQuery();
@@ -27,7 +28,7 @@ const AllUsers = () => {
     const userRole = user.path || "";
     return userRole.toLowerCase().includes(searchTerm.toLowerCase());
   });
-
+  const totalUsers = filteredUsers?.length || 0; // <-- Total users count
   const generatePDF = async (filteredUsers, searchTerm) => {
     try {
       // Dynamic imports with proper error handling
@@ -123,11 +124,17 @@ const AllUsers = () => {
 const handleDelete = async (userId) => {
   setIsDeleting(true);
   try {
-    await deleteUser(userId).unwrap(); // This triggers the mutation
-    toast.success("User deleted successfully");
-    
-     // Force a refetch of the user data
-     window.location.reload();
+    await deleteUser(userId).unwrap();
+
+    await Swal.fire({
+      icon: 'success',
+      title: 'Deleted!',
+      text: 'User has been deleted successfully.',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#3085d6',
+    });
+
+    window.location.reload(); // Refresh after user clicks OK
   } catch (error) {
     toast.error(error.data?.message || "Failed to delete user");
   } finally {
@@ -136,12 +143,17 @@ const handleDelete = async (userId) => {
   }
 };
 
+
 ////
   return (
     <div className="p-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold">User Management</h1>
-        
+      <div>
+          <h1 className="text-2xl font-bold">User Management</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Total Users: {totalUsers}
+          </p>
+        </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
           <div className="relative w-full sm:w-64">
             <input

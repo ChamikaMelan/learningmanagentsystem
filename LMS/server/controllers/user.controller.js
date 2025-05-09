@@ -2,6 +2,9 @@ import {User} from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken.js";
 import { deleteMediaFromCloudinary, uploadMedia } from "../utils/cloudinary.js";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
+
 
 export const register = async (req,res) => {
     try {
@@ -235,4 +238,224 @@ export const getAllUsers = async (req, res) => {
         });
     }
 };
-////
+///////
+
+// Configure nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// Generate OTP
+const generateOTP = () => {
+  return crypto.randomInt(100000, 999999).toString();
+};
+
+// Store OTPs temporarily (in production, use Redis or database)
+const otpStorage = new Map();
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required"
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found with this email"
+      });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+    const otpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
+
+    // Store OTP with expiry
+    otpStorage.set(email, { otp, expiry: otpExpiry });
+
+    // Send email with OTP
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset OTP',
+      text: `Your OTP for password reset is: ${otp}. This OTP is valid for 10 minutes.`
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent to your email"
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to process forgot password request"
+    });
+  }
+};
+
+export const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required"
+      });
+    }
+
+    const storedData = otpStorage.get(email);
+    
+    if (!storedData || storedData.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP"
+      });
+    }
+
+    if (Date.now() > storedData.expiry) {
+      otpStorage.delete(email);
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired"
+      });
+    }
+
+    // Mark OTP as verified (you can store this in otpStorage)
+    otpStorage.set(email, { ...storedData, verified: true });
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully"
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify OTP"
+    });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, OTP and new password are required"
+      });
+    }
+
+    const storedData = otpStorage.get(email);
+    
+    // Check if OTP exists and is verified
+    if (!storedData || storedData.otp !== otp || !storedData.verified) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP or OTP not verified"
+      });
+    }
+
+    // Check if OTP is expired
+    if (Date.now() > storedData.expiry) {
+      otpStorage.delete(email);
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired"
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    // Remove OTP from storage
+    otpStorage.delete(email);
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully"
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to reset password"
+    });
+  }
+};
+/////change password
+export const changePassword = async (req, res) => {
+  try {
+      const userId = req.id;
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+          return res.status(400).json({
+              success: false,
+              message: "Both current and new password are required"
+          });
+      }
+
+      const user = await User.findById(userId);
+      if (!user) {
+          return res.status(404).json({
+              success: false,
+              message: "User not found"
+          });
+      }
+
+      // Verify current password
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+          return res.status(400).json({
+              success: false,
+              message: "Current password is incorrect"
+          });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedPassword;
+      await user.save();
+
+      return res.status(200).json({
+          success: true,
+          message: "Password changed successfully"
+      });
+
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+          success: false,
+          message: "Failed to change password"
+      });
+  }
+};

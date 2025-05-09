@@ -1,7 +1,7 @@
-import jwt from "jsonwebtoken";
+// middlewares/isAuthenticated.js
+import jwt from 'jsonwebtoken';
 
-// Changed function name to protect for consistency with imports
-export const protect = async (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
     const token = req.cookies.token;
     if (!token) {
@@ -10,6 +10,7 @@ export const protect = async (req, res, next) => {
         success: false,
       });
     }
+
     const decode = await jwt.verify(token, process.env.SECRET_KEY);
     if (!decode) {
       return res.status(401).json({
@@ -17,19 +18,16 @@ export const protect = async (req, res, next) => {
         success: false,
       });
     }
+
     req.id = decode.userId;
     next();
   } catch (error) {
     console.log(error);
     return res.status(500).json({
-      message: "Authentication error",
+      message: "Internal server error",
       success: false,
     });
   }
 };
 
-// Also export the original function name for backward compatibility
-export const isAuthenticated = protect;
-
-// Keep the default export for backward compatibility
-export default protect;
+export default protect; // Default export
