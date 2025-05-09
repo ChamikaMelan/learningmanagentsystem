@@ -1,5 +1,6 @@
 import BuyCourseButton from "@/components/BuyCourseButton";
 import { Button } from "@/components/ui/button";
+import AddToCartButton from "@/components/AddToCartButton";
 import {
   Card,
   CardContent,
@@ -40,7 +41,6 @@ const CourseDetail = () => {
     <div className="space-y-5">
       <div className="bg-[#2D2F31] text-white">
         <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 flex flex-col gap-2">
-          {/* Aurora-styled h1 with dynamic course title */}
           <h1
             style={{
               fontSize: "clamp(2rem, 6vw, 3rem)",
@@ -126,7 +126,6 @@ const CourseDetail = () => {
             </div>
           </h1>
 
-          {/* Keyframes for animations */}
           <style jsx>{`
             @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;800&display=swap");
 
@@ -194,7 +193,6 @@ const CourseDetail = () => {
             <p>Last updated {course?.createdAt?.split("T")[0] || "N/A"}</p>
           </div>
           
-          {/* Students enrolled and See Feedbacks button */}
           <div className="flex items-center justify-between">
             <p>Students enrolled: {course?.enrolledStudents?.length || 0}</p>
             <Button 
@@ -253,13 +251,20 @@ const CourseDetail = () => {
                 </span>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-center p-4">
+            <CardFooter className="flex flex-col gap-2 p-4">
               {purchased ? (
                 <Button onClick={handleContinueCourse} className="w-full">
                   Continue Course
                 </Button>
               ) : (
-                <BuyCourseButton courseId={courseId} />
+                <>
+                  <BuyCourseButton courseId={courseId} className="w-full" />
+                  <AddToCartButton 
+                    courseId={courseId}
+                    variant="outline"
+                    className="w-full"
+                  />
+                </>
               )}
             </CardFooter>
           </Card>
