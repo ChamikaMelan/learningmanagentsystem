@@ -27,6 +27,9 @@
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+
+    "date-fns": "^4.1.0",
+
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
@@ -43,6 +46,7 @@
     "recharts": "^2.13.3",
     "sonner": "^1.7.0",
     "stripe": "^17.7.0",
+    "sweetalert2": "^11.21.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7"
   },

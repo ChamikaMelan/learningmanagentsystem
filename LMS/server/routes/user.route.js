@@ -1,5 +1,5 @@
 import express from "express";
-import { getUserProfile, login, logout, register, updateProfile,deleteProfile, getAllUsers} from "../controllers/user.controller.js";
+import { getUserProfile, login, logout, register, updateProfile,deleteProfile, getAllUsers,forgotPassword,resetPassword,verifyOTP,changePassword} from "../controllers/user.controller.js";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 import upload from "../utils/multer.js";
 import isinstructor from "../middlewares/isinstructor.js";
@@ -17,4 +17,10 @@ router.route("/all-users").get(isAuthenticated, getAllUsers);
 
 // Instructors can delete any profile by ID
 router.delete("/delete-user/:userId", isAuthenticated, isinstructor, deleteProfile);
+
+// Add these to your existing routes
+router.route("/forgot-password").post(forgotPassword);
+router.route("/reset-password").post(resetPassword);
+router.route("/verify-otp").post(verifyOTP);
+router.route("/change-password").put(isAuthenticated, changePassword);
 export default router;
