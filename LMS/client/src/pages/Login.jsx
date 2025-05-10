@@ -105,6 +105,13 @@ const Login = () => {
         toast.error("Please fill all required fields");
         return;
       }
+
+      // Birth year validation
+const birthYear = new Date(signupInput.dob).getFullYear();
+if (birthYear < 1960 || birthYear > 2010) {
+  toast.error("Birth year must be between 1960 and 2010");
+  return;
+}
     }
 
     const inputData = type === "signup" ? signupInput : loginInput;
@@ -276,20 +283,37 @@ const Login = () => {
                 )}
               </div>
 
-              {/* Date of Birth Field */}
-              <div className="space-y-1">
-                <Label htmlFor="dob">Date of Birth</Label>
-                <Input
-                  type="text"
-                  name="dob"
-                  value={signupInput.dob}
-                  onFocus={(e) => (e.target.type = 'date')}
-                  onBlur={(e) => (e.target.type = 'text')}
-                  onChange={(e) => changeInputHandler(e, "signup")}
-                  placeholder="Select Date of Birth"
-                  required
-                />
-              </div>
+             <div className="space-y-1">
+  <Label htmlFor="dob">Date of Birth</Label>
+  <Input
+    type="text"
+    name="dob"
+    value={signupInput.dob}
+    onFocus={(e) => (e.target.type = 'date')}
+    onBlur={(e) => (e.target.type = 'text')}
+    onChange={(e) => changeInputHandler(e, "signup")}
+    placeholder="Select Date of Birth"
+    required
+    className={`
+      border-2
+      ${
+        signupInput.dob &&
+        (new Date(signupInput.dob).getFullYear() < 1960 ||
+         new Date(signupInput.dob).getFullYear() > 2010)
+          ? "border-red-500 focus:border-red-500"
+          : "border-black-300 focus:border-black-500"
+      }
+      rounded-md px-3 py-2 focus:outline-none
+    `}
+  />
+  {signupInput.dob &&
+    (new Date(signupInput.dob).getFullYear() < 1960 ||
+     new Date(signupInput.dob).getFullYear() > 2010) && (
+      <p className="text-red-500 text-sm mt-1">
+        Birth year must be between 1960 and 2010
+      </p>
+  )}
+</div>
 
               {/* Path/Role Field */}
               <div className="space-y-1">
@@ -303,14 +327,14 @@ const Login = () => {
                   required
                 >
                   <option value="">Select Role</option>
-                  <option value="Web Developeing">Web Developing</option>
+                  <option value="Web Developeing">Web Developer</option>
                   <option value="Software Engineering">Software Engineering</option>
                   <option value="graphic-designing">Graphic Designing</option>
                   <option value="Data science">Data Science</option>
                   <option value="Network Engineering">Network Engineering</option>
                   <option value="Cybersecurity">Cybersecurity</option>
                   <option value="Business Analyst">Business Analyst</option>
-                  <option value="Mobile Application Developing">Mobile Application Development</option>
+                  <option value="Mobile Application Development">Mobile Application Development</option>
                 </select>
               </div>
             </CardContent>
@@ -380,12 +404,7 @@ const Login = () => {
                   required
                 />
                 <div className="text-right">
-    <a href="/forgot-password" className="text-sm text-blue-500 hover:underline"
-    onClick={(e) => {
-      e.preventDefault();
-      navigate("/forgot-password");
-    }}
-  >
+    <a href="" className="text-sm text-blue-500 hover:underline">
       Forgot Password?
     </a>
   </div>

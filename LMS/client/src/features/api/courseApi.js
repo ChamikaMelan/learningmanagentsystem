@@ -84,14 +84,17 @@ export const courseApi = createApi({
     editLecture: builder.mutation({
       query: ({
         lectureTitle,
-        videoInfo,
+        videoUrl,
+        publicId,
         isPreviewFree,
         courseId,
         lectureId,
+        pdfUrl,          
+        pdfPublicId,     
       }) => ({
         url: `/${courseId}/lecture/${lectureId}`,
         method: "POST",
-        body: { lectureTitle, videoInfo, isPreviewFree },
+        body: { lectureTitle, videoUrl, publicId, isPreviewFree,pdfUrl,pdfPublicId },
       }),
     }),
     removeLecture: builder.mutation({
@@ -113,6 +116,13 @@ export const courseApi = createApi({
         method: "PATCH",
       }),
     }),
+    deleteCourse: builder.mutation({ // Added new mutation
+      query: (courseId) => ({
+          url: `/${courseId}`,
+          method: "DELETE",
+      }),
+      invalidatesTags: ['Refetch_Creator_Course'],
+  }),
   }),
 });
 export const {
@@ -128,4 +138,5 @@ export const {
   useRemoveLectureMutation,
   useGetLectureByIdQuery,
   usePublishCourseMutation,
+  useDeleteCourseMutation
 } = courseApi;
