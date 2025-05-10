@@ -19,7 +19,8 @@ import SearchPage from "./pages/student/SearchPage";
 import AllUsers from "./pages/admin/user/AllUsers";
 import Payment from './pages/admin/payment/payment';
 import Cart from "./components/Cart";
-
+//PDFViewer
+import PDFViewer from "./pages/student/PDFViewer";
 
 import ForgotPassword from "./pages/ForgotPassword";
 
@@ -157,6 +158,15 @@ const appRouter = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <EditPost />
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path: "/view-pdf",
+        element: (
+          <ProtectedRoute>
+            <PDFViewer />
           </ProtectedRoute>
         ),
       },

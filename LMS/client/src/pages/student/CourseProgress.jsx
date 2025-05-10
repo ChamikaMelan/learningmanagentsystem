@@ -1,3 +1,4 @@
+// CourseProgress.jsx
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -23,7 +24,7 @@ import {
   Trash2
 } from "lucide-react";
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const ChatMessage = ({ message }) => {
@@ -46,6 +47,8 @@ const ChatMessage = ({ message }) => {
 const CourseProgress = () => {
   const params = useParams();
   const courseId = params.courseId;
+  const navigate = useNavigate();
+
   const { data, isLoading, isError, refetch } = useGetCourseProgressQuery(courseId);
 
   const [updateLectureProgress] = useUpdateLectureProgressMutation();
@@ -61,7 +64,6 @@ const CourseProgress = () => {
   const chatContainerRef = useRef(null);
 
   useEffect(() => {
-    // Scroll to bottom of chat when new messages arrive
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
@@ -183,7 +185,6 @@ const CourseProgress = () => {
             />
           </div>
 
-          {/* Lecture Title */}
           <div className="mt-2">
             <h3 className="font-medium text-lg">
               {`Lecture ${
@@ -192,7 +193,6 @@ const CourseProgress = () => {
             </h3>
           </div>
 
-          {/* Display PDF if available */}
           {selectedLecture?.pdfUrl && (
             <div className="mt-4">
               <h4 className="font-medium text-md mb-2">Lecture PDF</h4>
@@ -201,6 +201,16 @@ const CourseProgress = () => {
                 className="w-full h-96 border rounded-lg"
                 title="Lecture PDF"
               ></iframe>
+              <Button
+                className="mt-2"
+                onClick={() =>
+                  navigate("/view-pdf", {
+                    state: { pdfUrl: selectedLecture.pdfUrl },
+                  })
+                }
+              >
+                Open PDF in New Page
+              </Button>
             </div>
           )}
         </div>
@@ -261,7 +271,6 @@ const CourseProgress = () => {
                 <Trash2 size={16} />
               </Button>
             </div>
-            
             <div 
               ref={chatContainerRef}
               className="flex-1 p-3 overflow-y-auto"
@@ -276,7 +285,6 @@ const CourseProgress = () => {
                 ))
               )}
             </div>
-            
             <form 
               onSubmit={handleSendMessage}
               className="border-t p-3 flex gap-2"
