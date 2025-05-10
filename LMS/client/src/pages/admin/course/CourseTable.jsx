@@ -16,10 +16,8 @@ import { useNavigate } from "react-router-dom";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 
-// Import the logo image
-import logo from '../../../assets/logo.jpg'; // Adjust the path based on your file structure
+import logo from '../../../assets/logo.jpg';
 
-// Define styles for the PDF
 const styles = StyleSheet.create({
   page: {
     padding: 30,
@@ -67,40 +65,38 @@ const styles = StyleSheet.create({
   oddRow: {
     backgroundColor: '#fff',
   },
-  // Specific styles for each column header
   tableColHeaderTitle: {
-    width: '30%', // Increased width for Title
+    width: '30%',
     padding: 8,
     borderRightWidth: 1,
     borderColor: '#000',
   },
   tableColHeaderPrice: {
-    width: '10%', // Decreased width for Price
+    width: '10%',
     padding: 8,
     borderRightWidth: 1,
     borderColor: '#000',
   },
   tableColHeaderDefault: {
-    width: '20%', // Default width for Status, Category, Created Date
+    width: '20%',
     padding: 8,
     borderRightWidth: 1,
     borderColor: '#000',
   },
-  // Specific styles for each column cell
   tableColTitle: {
-    width: '30%', // Increased width for Title
+    width: '30%',
     padding: 8,
     borderRightWidth: 1,
     borderColor: '#ddd',
   },
   tableColPrice: {
-    width: '10%', // Decreased width for Price
+    width: '10%',
     padding: 8,
     borderRightWidth: 1,
     borderColor: '#ddd',
   },
   tableColDefault: {
-    width: '20%', // Default width for Status, Category, Created Date
+    width: '20%',
     padding: 8,
     borderRightWidth: 1,
     borderColor: '#ddd',
@@ -116,27 +112,18 @@ const styles = StyleSheet.create({
   },
 });
 
-// PDF Document Component
-// PDF Document Component
 const CoursePDF = ({ courses }) => {
-  // Get current date and time
   const currentDateTime = new Date().toLocaleString();
 
   return (
     <Document>
       <Page style={styles.page}>
-        {/* Header with Logo, Title, and Date/Time */}
         <View style={styles.header}>
-          {/* Logo on the top-left */}
-          <Image
-            style={styles.logo}
-            src={logo} // Use the imported logo
-          />
+          <Image style={styles.logo} src={logo} />
           <Text style={styles.title}>Course Report</Text>
           <Text style={styles.dateTime}>Generated on: {currentDateTime}</Text>
         </View>
 
-        {/* Combined Table */}
         <View style={styles.table}>
           <View style={styles.tableHeaderRow}>
             <View style={styles.tableColHeaderTitle}>
@@ -196,13 +183,11 @@ const CourseTable = () => {
   const { data, isLoading } = useGetCreatorCourseQuery();
   const navigate = useNavigate();
 
-  // State for search inputs
   const [searchTitle, setSearchTitle] = useState("");
   const [searchStatus, setSearchStatus] = useState("");
 
   if (isLoading) return <h1>Loading...</h1>;
 
-  // Filter courses based on search inputs
   const filteredCourses = data.courses.filter((course) => {
     const titleMatch = course.courseTitle
       .toLowerCase()
@@ -218,14 +203,20 @@ const CourseTable = () => {
     <div className="p-4">
       {/* Buttons */}
       <div className="flex justify-between mb-4">
-        <Button onClick={() => navigate(`create`)}>Create a new course</Button>
+        <Button
+          onClick={() => navigate(`create`)}
+          className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition duration-200"
+        >
+          Create a New Course
+        </Button>
+
         <PDFDownloadLink
           document={<CoursePDF courses={filteredCourses} />}
           fileName="courses.pdf"
         >
           {({ loading }) => (
             <Button
-              className="text-black bg-white border border-black hover:bg-gray-100"
+              className="bg-white text-blue-600 font-semibold border border-blue-600 px-4 py-2 rounded-lg shadow-sm hover:bg-blue-50 transition duration-200"
             >
               {loading ? "Generating PDF..." : "Download PDF"}
             </Button>
@@ -235,23 +226,27 @@ const CourseTable = () => {
 
       {/* Search Inputs */}
       <div className="flex gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Search by title..."
-          value={searchTitle}
-          onChange={(e) => setSearchTitle(e.target.value)}
-          className="border border-black p-2 rounded w-1/3 bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      <input
+  type="text"
+  placeholder="Search by title..."
+  value={searchTitle}
+  onChange={(e) => setSearchTitle(e.target.value)}
+  className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition duration-200 placeholder-white"
+/>
+
         <select
           value={searchStatus}
           onChange={(e) => setSearchStatus(e.target.value)}
-          className="border border-black p-2 rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition duration-200"
         >
           <option value="">All Status</option>
           <option value="Published">Published</option>
           <option value="Draft">Draft</option>
         </select>
       </div>
+      <p className="text-sm text-gray-600 mb-2 text-white font-bold ">
+        Total Courses: {filteredCourses.length}
+      </p>
 
       {/* Table */}
       <Table>
@@ -279,9 +274,10 @@ const CourseTable = () => {
                   <Button
                     size="sm"
                     variant="ghost"
+                    className="text-blue-600 hover:text-blue-800 transition duration-200"
                     onClick={() => navigate(`${course._id}`)}
                   >
-                    <Edit />
+                    <Edit className="w-4 h-4" />
                   </Button>
                 </TableCell>
               </TableRow>

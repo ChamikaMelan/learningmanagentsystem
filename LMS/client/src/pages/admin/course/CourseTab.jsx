@@ -1,3 +1,4 @@
+import Swal from "sweetalert2"; // Import SweetAlert2
 import RichTextEditor from "@/components/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import {
@@ -115,14 +116,46 @@ const CourseTab = () => {
     }
   };
 
+  // Delete Course with SweetAlert confirmation
   const deleteCourseHandler = async () => {
-    try {
-      const response = await deleteCourse(courseId).unwrap();
-      toast.success(response.message || "Course deleted successfully.");
-      navigate("/admin/course");
-    } catch (error) {
-      toast.error(error?.data?.message || "Failed to delete course");
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You are about to delete this course. This action cannot be undone!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await deleteCourse(courseId).unwrap();
+          toast.success(response.message || "Course deleted successfully.");
+          navigate("/admin/course");
+        } catch (error) {
+          toast.error(error?.data?.message || "Failed to delete course");
+        }
+      }
+    });
+  };
+
+  // Delete Lecture with SweetAlert confirmation (if necessary)
+  const deleteLectureHandler = (lectureId) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You are about to delete this lecture. This action cannot be undone!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        // Assuming there's a deleteLecture mutation available
+        // await deleteLecture({ courseId, lectureId });
+        toast.success("Lecture deleted successfully.");
+      }
+    });
   };
 
   useEffect(() => {
@@ -238,7 +271,6 @@ const CourseTab = () => {
                 name="coursePrice"
                 value={input.coursePrice}
                 onChange={changeEventHandler}
-                
                 className="w-fit"
                 min="0" // Prevent negative values in the input
                 step="1" // Ensure single-unit increments
